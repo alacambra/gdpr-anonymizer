@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "gdpr-anonymizer"
-version = "0.1.0"
-description = "GDPR-compliant text anonymization system - Iteration 1 (Minimal Proof of Concept)"
+version = "0.2.0"
+description = "GDPR-compliant text anonymization system - Iteration 2 (Dual-Agent Validation)"
 authors = ["GDPR Anonymizer Team <team@gdpr-anonymizer.com>"]
 license = "MIT"
 readme = "README.md"
@@ -9,6 +9,7 @@ packages = [{include = "anonymization", from = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
+pydantic = "^2.0.0"
 ollama = {version = "^0.1.0", optional = true}
 anthropic = {version = "^0.18.0", optional = true}
 openai = {version = "^1.0.0", optional = true}
