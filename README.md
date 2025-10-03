@@ -1,314 +1,128 @@
-# GDPR Anonymization System
+# GDPR Text Anonymization System - Iteration 1
 
-A professional Python application that uses AutoGen to orchestrate three specialized AI agents for GDPR-compliant document anonymization.
+**Minimal Proof-of-Concept** for GDPR-compliant text anonymization using LLMs.
 
-## System Overview
+## Overview
 
-This system implements a multi-agent workflow for document anonymization:
-
-1. **ANON-EXEC**: Anonymization Executor - Replaces personal data with placeholders
-2. **DIRECT-CHECK**: Direct Data Verification - Verifies no direct identifiers remain
-3. **RISK-ASSESS**: Risk Assessment - Evaluates re-identification risks
-
-## Features
-
-- 🤖 **Multi-Agent Orchestration**: Uses AutoGen for coordinated agent workflow
-- 🔒 **GDPR Compliance**: Follows GDPR anonymization standards
-- 📊 **Risk Assessment**: Evaluates re-identification probability
-- 📝 **Detailed Logging**: Complete audit trail of anonymization process
-- ✅ **Quality Assurance**: Built-in verification and validation
-- 🏗️ **Professional Architecture**: Modular, testable, and maintainable code
-- 🐳 **Docker Support**: Containerized deployment
-- 🧪 **Comprehensive Testing**: Unit and integration tests
-- 📋 **Rich CLI**: Beautiful command-line interface with progress indicators
+This is a simple, working prototype that demonstrates text anonymization by:
+- Detecting personal data (names, emails, phone numbers, addresses)
+- Replacing them with standardized placeholders like `[NAME_1]`, `[EMAIL_1]`
+- Maintaining consistency across the document
 
 ## Installation
 
-### Development Installation
+### Requirements
+- Python ≥3.10
+- Poetry (install from [python-poetry.org](https://python-poetry.org))
+- ONE of: Ollama, Claude API key, or OpenAI API key
 
-1. Clone the repository:
+### Install Steps
+
+1. **Clone the repository**:
 ```bash
-git clone <your-repo-url>
+git clone <repository-url>
 cd gdpr-anonymizer
 ```
 
-2. Install in development mode:
+2. **Install with your LLM provider** (choose ONE):
 ```bash
-# Install with all development dependencies
-make install-dev
+# For Ollama (local, free)
+poetry install -E ollama
 
-# Or manually
-pip install -e ".[dev,test,docs]"
+# For Claude (Anthropic)
+poetry install -E claude
+
+# For OpenAI
+poetry install -E openai
 ```
 
-3. Set up environment variables:
+3. **Set up environment** (if using Claude or OpenAI):
 ```bash
 cp .env.example .env
-# Edit .env and add your OpenAI API key
-```
-
-### Production Installation
-
-```bash
-pip install gdpr-anonymizer
-```
-
-### Docker Installation
-
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
-
-# Or build and run manually
-docker build -t gdpr-anonymizer .
-docker run -e OPENAI_API_KEY=your_key gdpr-anonymizer
+# Edit .env and add your API key
 ```
 
 ## Usage
 
-### Command Line Interface
-
-The system provides a rich CLI for easy document processing:
+### Run the Demo
 
 ```bash
-# Get help
-gdpr-anonymizer --help
-
-# Anonymize a document file
-gdpr-anonymizer anonymize document.txt
-
-# Anonymize with custom settings
-gdpr-anonymizer --config config.yaml anonymize document.txt --format json
-
-# Initialize configuration file
-gdpr-anonymizer init-config --output my_config.yaml
-
-# Display system information
-gdpr-anonymizer info
+poetry run python demo.py
 ```
 
-### Python API
+This will process 3 example texts and show you:
+- Original text
+- Anonymized text with placeholders
+- Mapping of what was replaced
+
+### Use in Your Code
 
 ```python
-from gdpr_anonymizer import GDPRAnonymizationOrchestrator
+from anonymization import anonymize_simple
 
-# Initialize the system
-orchestrator = GDPRAnonymizationOrchestrator()
+text = "Contact John Smith at john@email.com or call 555-1234"
+result = anonymize_simple(text)
 
-# Anonymize a document
-document = "John Smith works at TechCorp. Email: john@techcorp.com"
-result = orchestrator.anonymize_document(document)
+print(result.anonymized_text)
+# Output: Contact [NAME_1] at [EMAIL_1] or call [PHONE_1]
 
-print(f"Anonymized: {result.anonymized_document}")
-print(f"Risk Level: {result.final_risk_level.value}")
-print(f"Compliance: {result.compliance_status.value}")
+print(result.mappings)
+# Output: {'John Smith': '[NAME_1]', 'john@email.com': '[EMAIL_1]', '555-1234': '[PHONE_1]'}
 ```
 
-### Example Script
+## What's Included (Iteration 1)
 
-Run the included example:
-```bash
-# Set your API key
-export OPENAI_API_KEY="your-key-here"
+✅ Detects: Names, Emails, Phone Numbers, Addresses
+✅ Consistent placeholders across document
+✅ Works with Ollama, Claude, or OpenAI
+✅ Simple single-function API
+✅ Runnable demo with examples
 
-# Run example
-python scripts/run_example.py
-```
+## What's NOT Included (Coming in Iteration 2+)
 
-## Configuration
+❌ Multi-agent verification
+❌ Risk assessment
+❌ Configuration files
+❌ CLI interface
+❌ File I/O
+❌ Chunking for large documents
+❌ Async processing
+❌ Comprehensive error handling
+❌ Automated tests
 
-### Configuration File
+## Troubleshooting
 
-Create a YAML configuration file:
+**Error: "No LLM provider available"**
+- Install an LLM provider: `poetry install -E ollama` (or claude/openai)
+- If using Claude/OpenAI, set API key in `.env`
 
-```yaml
-# config.yaml
-llm_provider: openai
-openai:
-  model: gpt-4
-  temperature: 0.1
-  api_key: ${OPENAI_API_KEY}
+**Error: "Failed to parse LLM response as JSON"**
+- The LLM might need a better model or different prompt
+- Try using Claude or GPT-4 for more reliable results
 
-logging:
-  level: INFO
-  file_path: logs/gdpr_anonymizer.log
-
-anonymization:
-  risk_threshold: MEDIUM
-  preserve_structure: true
-
-output_dir: ./output
-save_reports: true
-```
-
-### Environment Variables
-
-- `OPENAI_API_KEY`: Your OpenAI API key (required)
-- `AZURE_OPENAI_API_KEY`: Azure OpenAI key (optional)
-- `AZURE_OPENAI_ENDPOINT`: Azure OpenAI endpoint (optional)
-- `ENV`: Environment (development/production)
-- `DEBUG`: Enable debug mode
-
-### Programmatic Configuration
-
-```python
-from gdpr_anonymizer.config import Settings
-
-settings = Settings(
-    llm_provider="openai",
-    openai={"model": "gpt-3.5-turbo"},
-    anonymization={"risk_threshold": "LOW"}
-)
-
-orchestrator = GDPRAnonymizationOrchestrator(settings)
-```
-
-## Agent Specifications
-
-### ANON-EXEC (Anonymization Executor)
-- **Purpose**: Replace personal data with standardized placeholders
-- **Placeholders**: Uses sequential numbering (e.g., [NAME_1], [EMAIL_1])
-- **Coverage**: Direct identifiers (names, emails, phones) and indirect identifiers
-
-### DIRECT-CHECK (Direct Data Verification)
-- **Purpose**: Verify no direct personal identifiers remain
-- **Validation**: Scans for missed names, emails, phones, addresses, IDs
-- **Output**: Binary PASS/FAIL with specific findings
-
-### RISK-ASSESS (Re-identification Risk Assessment)
-- **Purpose**: Evaluate re-identification risks from remaining data
-- **Scoring**: 5-dimension risk matrix (1-25 total score)
-- **Categories**: CRITICAL/HIGH/MEDIUM/LOW/NEGLIGIBLE
-
-## Output Format
-
-The system returns an `AnonymizationResult` object with:
-
-- `anonymized_document`: The processed document
-- `anonymization_logs`: Detailed mapping of replacements
-- `processing_summary`: Statistics on changes made
-- `agent_reports`: Complete reports from all three agents
-- `risk_assessment`: Overall risk assessment with detailed scoring
-- `compliance_status`: GDPR compliance determination
-
-## Example Workflow
+## Architecture (Simplified)
 
 ```
-Original Document → ANON-EXEC → Anonymized Document
-                                       ↓
-                    DIRECT-CHECK ← Anonymized Document
-                         ↓ (PASS)
-                    RISK-ASSESS → Final Risk Assessment
-                         ↓
-                 Compliance Decision
+src/anonymization/
+├── __init__.py          # Domain model (AnonymizationResult)
+├── llm.py              # LLM client wrapper (~70 lines)
+├── simple.py           # Core anonymization logic (~120 lines)
+
+demo.py                 # Runnable examples
+examples/
+└── sample_texts.py     # Sample texts for testing
 ```
 
-## Risk Assessment Matrix
+## Next Steps
 
-| Score | Risk Level | Description |
-|-------|------------|-------------|
-| 20-25 | CRITICAL   | Likely re-identification |
-| 15-19 | HIGH       | Possible with effort |
-| 10-14 | MEDIUM     | Difficult but possible |
-| 5-9   | LOW        | Very difficult |
-| 5     | NEGLIGIBLE | Practically impossible |
+See [requirements/iteration1.md](requirements/iteration1.md) for full iteration 1 scope.
 
-## Development
-
-### Setup Development Environment
-
-```bash
-# Install development dependencies
-make install-dev
-
-# Setup pre-commit hooks
-make dev-setup
-```
-
-### Running Tests
-
-```bash
-# Run all tests
-make test
-
-# Run tests with coverage
-make test-cov
-
-# Run specific test file
-pytest tests/unit/test_orchestrator.py -v
-```
-
-### Code Quality
-
-```bash
-# Format code
-make format
-
-# Run linting
-make lint
-
-# Type checking
-make type-check
-
-# Run all quality checks
-make check
-```
-
-### Building
-
-```bash
-# Build package
-make build
-
-# Clean build artifacts
-make clean
-```
-
-## Project Structure
-
-```
-gdpr-anonymizer/
-├── gdpr_anonymizer/          # Main package
-│   ├── agents/               # Agent implementations
-│   ├── cli/                  # Command-line interface
-│   ├── config/               # Configuration management
-│   ├── core/                 # Core orchestration
-│   ├── models/               # Data models
-│   └── utils/                # Utilities
-├── tests/                    # Test suite
-├── scripts/                  # Utility scripts
-├── docs/                     # Documentation
-└── config/                   # Configuration files
-```
-
-## Limitations
-
-- Requires OpenAI API access (or Azure OpenAI)
-- Processing time depends on document length and complexity
-- Quality depends on the underlying language model capabilities
-- Currently supports text documents only
-
-## Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes with tests
-4. Run quality checks (`make check`)
-5. Submit a pull request
-
-### Future Enhancements
-
-- Support for multiple document formats (PDF, DOCX, etc.)
-- Local/offline anonymization models
-- Batch processing capabilities
-- Web interface
-- Database integration for result storage
-- Advanced ML-based personal data detection
+Iteration 2 will add:
+- Multi-agent workflow (verification + risk assessment)
+- Configuration system
+- Better error handling
+- Async processing
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-Please ensure compliance with relevant data protection regulations in your jurisdiction.
+MIT - See [LICENSE](LICENSE)
