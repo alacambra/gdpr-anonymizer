@@ -2,13 +2,27 @@
 Core anonymization logic - Iteration 1 minimal implementation.
 """
 
+from dataclasses import dataclass
 from typing import Dict
 
 from pydantic import ValidationError
 
-from . import AnonymizationResult
 from .llm import LLMClient
 from .models import Entity, EntityList
+
+
+@dataclass
+class AnonymizationResult:
+    """Result of text anonymization operation.
+
+    Attributes:
+        anonymized_text: Text with personal data replaced by placeholders
+        mappings: Dictionary mapping original values to placeholders
+        original_text: Copy of the original input text
+    """
+    anonymized_text: str
+    mappings: Dict[str, str]
+    original_text: str
 
 
 def anonymize_simple(text: str) -> AnonymizationResult:

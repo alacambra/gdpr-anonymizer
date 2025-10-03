@@ -5,7 +5,7 @@ Provides type-safe serialization/deserialization for entity detection.
 """
 
 from enum import Enum
-from typing import List
+from typing import Iterator, List
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -16,6 +16,7 @@ class EntityType(str, Enum):
     EMAIL = "EMAIL"
     PHONE = "PHONE"
     ADDRESS = "ADDRESS"
+    OTHER = "OTHER"
 
 
 class Entity(BaseModel):
@@ -89,5 +90,5 @@ class EntityList(BaseModel):
     def __len__(self) -> int:
         return len(self.entities)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Entity]:
         return iter(self.entities)
