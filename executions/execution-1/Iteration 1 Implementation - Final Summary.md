@@ -135,6 +135,7 @@ Customer [NAME_1] ([EMAIL_1], [PHONE_1]) reported an issue...
 ## Acceptance Criteria Status
 
 ### Functional (10/10) ✅
+
 - [x] Poetry install works
 - [x] Demo runs successfully
 - [x] 3 examples displayed
