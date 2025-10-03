@@ -170,6 +170,45 @@ raise ValueError(
 )
 ```
 
+### 4. Comments and Self-Documenting Code
+Avoid inline comments. Use self-defining functions instead. If several lines require a comment, extract them into a self-defining function.
+
+```python
+# ❌ BAD - Inline comments explaining logic
+def process_user_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    # Validate email format
+    if not re.match(r'^[a-z0-9]+@[a-z0-9]+\.[a-z]{2,3}$', data['email']):
+        raise ValueError("Invalid email")
+
+    # Check if user is adult
+    if data['age'] < 18:
+        data['requires_consent'] = True
+
+    # Format phone number to international format
+    data['phone'] = '+1' + data['phone'].replace('-', '')
+
+    return data
+
+# ✅ GOOD - Self-defining functions
+def process_user_data(data: Dict[str, Any]) -> Dict[str, Any]:
+    validate_email_format(data['email'])
+    data = add_consent_requirement_if_minor(data)
+    data['phone'] = format_phone_to_international(data['phone'])
+    return data
+
+def validate_email_format(email: str) -> None:
+    if not re.match(r'^[a-z0-9]+@[a-z0-9]+\.[a-z]{2,3}$', email):
+        raise ValueError("Invalid email")
+
+def add_consent_requirement_if_minor(data: Dict[str, Any]) -> Dict[str, Any]:
+    if data['age'] < 18:
+        data['requires_consent'] = True
+    return data
+
+def format_phone_to_international(phone: str) -> str:
+    return '+1' + phone.replace('-', '')
+```
+
 ## Summary
 
 **Before marking any task complete:**

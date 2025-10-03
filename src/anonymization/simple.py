@@ -2,11 +2,13 @@
 Core anonymization logic - Iteration 1 minimal implementation.
 """
 
-import json
-from typing import Any, Dict, List
+from typing import Dict
+
+from pydantic import ValidationError
 
 from . import AnonymizationResult
 from .llm import LLMClient
+from .models import Entity, EntityList
 
 
 def anonymize_simple(text: str) -> AnonymizationResult:
@@ -37,22 +39,11 @@ def anonymize_simple(text: str) -> AnonymizationResult:
             original_text=text
         )
 
-    # Initialize LLM client
     llm = LLMClient()
-
-    # Create prompt for entity identification
     prompt = _create_entity_identification_prompt(text)
-
-    # Get LLM response
     response = llm.generate(prompt)
-
-    # Parse entities from response
-    entities = _parse_entities(response)
-
-    # Build entity mappings with placeholders
-    mappings = _build_mappings(entities)
-
-    # Apply replacements to text
+    entity_list = _parse_entities(response)
+    mappings = _build_mappings(entity_list)
     anonymized_text = _apply_replacements(text, mappings)
 
     return AnonymizationResult(
@@ -86,45 +77,35 @@ Text to analyze:
 JSON array:"""
 
 
-def _parse_entities(response: str) -> List[Dict[str, str]]:
-    """Parse entity list from LLM JSON response."""
+def _parse_entities(response: str) -> EntityList:
+    """Parse entity list from LLM JSON response using Pydantic models."""
     try:
         # Try to find JSON array in response
         start = response.find('[')
         end = response.rfind(']') + 1
         if start != -1 and end > start:
             json_str = response[start:end]
-            entities: List[Dict[str, Any]] = json.loads(json_str)
-            # Validate that we have a list of dicts with string values
-            result: List[Dict[str, str]] = []
-            for entity in entities:
-                if isinstance(entity, dict):
-                    result.append({
-                        "type": str(entity.get("type", "")),
-                        "value": str(entity.get("value", ""))
-                    })
-            return result
-        return []
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Failed to parse LLM response as JSON. Response excerpt: {response[:200]}") from e
+            return EntityList.from_json(json_str)
+        return EntityList(entities=[])
+    except (ValueError, ValidationError) as e:
+        raise ValueError(f"Failed to parse LLM response as valid entities. Response excerpt: {response[:200]}") from e
 
 
-def _build_mappings(entities: List[Dict[str, str]]) -> Dict[str, str]:
+def _build_mappings(entity_list: EntityList) -> Dict[str, str]:
     """Build mappings from original values to placeholders."""
     mappings = {}
     counters = {"NAME": 0, "EMAIL": 0, "PHONE": 0, "ADDRESS": 0}
 
-    for entity in entities:
-        entity_type = entity.get("type", "").upper()
-        value = entity.get("value", "").strip()
+    for entity in entity_list:
+        entity_type = entity.type.value
+        value = entity.value
 
-        if not value or value in mappings:
+        if value in mappings:
             continue
 
-        if entity_type in counters:
-            counters[entity_type] += 1
-            placeholder = f"[{entity_type}_{counters[entity_type]}]"
-            mappings[value] = placeholder
+        counters[entity_type] += 1
+        placeholder = f"[{entity_type}_{counters[entity_type]}]"
+        mappings[value] = placeholder
 
     return mappings
 

@@ -17,11 +17,12 @@ class LLMClient:
 
     def _detect_provider(self) -> None:
         """Auto-detect available LLM provider in order: Ollama, Claude, OpenAI."""
-        # Try Ollama first (local)
+        # Try Ollama first (local or remote)
         try:
             import ollama  # type: ignore[import-untyped]
+            ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
             self.provider = "ollama"
-            self.client = ollama
+            self.client = ollama.Client(host=ollama_host)
             return
         except ImportError:
             pass

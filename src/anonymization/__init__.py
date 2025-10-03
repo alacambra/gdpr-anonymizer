@@ -23,6 +23,7 @@ class AnonymizationResult:
     original_text: str
 
 
+from .models import Entity, EntityList, EntityType
 from .simple import anonymize_simple
 
-__all__ = ["anonymize_simple", "AnonymizationResult"]
+__all__ = ["anonymize_simple", "AnonymizationResult", "Entity", "EntityList", "EntityType"]
