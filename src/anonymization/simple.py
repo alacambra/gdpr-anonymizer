@@ -76,13 +76,15 @@ Entity types to identify:
 - EMAIL: Email addresses
 - PHONE: Phone numbers (any format)
 - ADDRESS: Physical addresses (street addresses, cities with street info)
+- OTHER: Any other identifiable information (IDs, account numbers, patient numbers, insurance policy numbers, transaction references, medical record numbers, etc.)
 
 Return format (JSON only, no other text):
 [
   {{"type": "NAME", "value": "John Smith"}},
   {{"type": "EMAIL", "value": "john@email.com"}},
   {{"type": "PHONE", "value": "555-123-4567"}},
-  {{"type": "ADDRESS", "value": "123 Main Street"}}
+  {{"type": "ADDRESS", "value": "123 Main Street"}},
+  {{"type": "OTHER", "value": "PAT-12345"}}
 ]
 
 Text to analyze:
@@ -108,7 +110,7 @@ def _parse_entities(response: str) -> EntityList:
 def _build_mappings(entity_list: EntityList) -> Dict[str, str]:
     """Build mappings from original values to placeholders."""
     mappings = {}
-    counters = {"NAME": 0, "EMAIL": 0, "PHONE": 0, "ADDRESS": 0}
+    counters = {"NAME": 0, "EMAIL": 0, "PHONE": 0, "ADDRESS": 0, "OTHER": 0}
 
     for entity in entity_list:
         entity_type = entity.type.value
