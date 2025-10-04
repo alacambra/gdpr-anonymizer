@@ -74,7 +74,7 @@ class LLMClient:
             Text response from the LLM
         """
         if self.provider == "ollama":
-            response = self.client.generate(model="llama2", prompt=prompt)  # type: ignore[attr-defined]
+            response = self.client.generate(model="gemma-custom", prompt=prompt)  # type: ignore[attr-defined]
             return str(response["response"])
 
         elif self.provider == "claude":
