@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Demo script for GDPR Anonymization System - Iteration 2
-Dual-agent workflow: Anonymization + Validation
+Demo script for GDPR Anonymization System - Iteration 3
+Complete 3-Agent Workflow: Anonymization + Validation + Risk Assessment
 """
 
 import sys
@@ -10,7 +10,7 @@ import os
 # Add src to path for local development
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
-from anonymization import anonymize_simple, validate_anonymization
+from anonymization import anonymize_simple, validate_anonymization, assess_risk
 from examples.sample_texts import ALL_EXAMPLES
 
 
@@ -65,6 +65,25 @@ def print_result(title: str, text: str) -> None:
                 print(f"    Context:  {issue.context}")
                 print(f"    Location: {issue.location_hint}")
 
+        # Agent 3: Risk Assessment (only runs if Agent 2 passes)
+        if validation_result.passed:
+            print("\n\n📊 AGENT 3: RISK ASSESSMENT (RISK-ASSESS)")
+            print("-" * 40)
+            risk_result = assess_risk(anon_result.anonymized_text, anon_result.mappings)
+
+            print(f"\nRisk Level:      {risk_result.risk_level}")
+            print(f"Overall Score:   {risk_result.overall_score}/25")
+            print(f"GDPR Compliant:  {'✅ YES' if risk_result.gdpr_compliant else '❌ NO'}")
+            print(f"Confidence:      {risk_result.confidence:.0%}")
+
+            print(f"\n📝 Assessment:")
+            print(f"{risk_result.reasoning}")
+
+            if risk_result.gdpr_compliant:
+                print("\n✅ RECOMMENDATION: SAFE TO PUBLISH")
+            else:
+                print("\n⚠️  RECOMMENDATION: NOT SAFE TO PUBLISH")
+
         print_separator()
 
     except Exception as e:
@@ -74,27 +93,31 @@ def print_result(title: str, text: str) -> None:
 
 
 def main() -> None:
-    """Run the dual-agent demo with all examples."""
+    """Run the complete 3-agent demo with all examples."""
     print_separator()
-    print("🛡️  GDPR TEXT ANONYMIZATION SYSTEM - ITERATION 2")
-    print("   Dual-Agent Workflow: Anonymization + Validation")
+    print("🛡️  GDPR TEXT ANONYMIZATION SYSTEM - ITERATION 3")
+    print("   Complete 3-Agent Workflow: Anonymization + Validation + Risk Assessment")
     print_separator()
 
     # Run all examples
     for title, text in ALL_EXAMPLES:
         print_result(title, text)
 
-    print("✨ Demo completed successfully!")
+    print("✨ Complete 3-agent workflow executed successfully!")
     print("\nTo use in your code:")
-    print("  from anonymization import anonymize_simple, validate_anonymization")
+    print("  from anonymization import anonymize_simple, validate_anonymization, assess_risk")
     print("  ")
     print("  # Agent 1: Anonymize")
     print("  result = anonymize_simple('Your text here')")
     print("  ")
     print("  # Agent 2: Validate")
     print("  validation = validate_anonymization(result.anonymized_text)")
+    print("  ")
+    print("  # Agent 3: Assess Risk (if validation passes)")
     print("  if validation.passed:")
-    print("      print('Safe to use!')")
+    print("      risk = assess_risk(result.anonymized_text, result.mappings)")
+    print("      if risk.gdpr_compliant:")
+    print("          print('Safe to publish!')")
     print()
 
 

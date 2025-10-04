@@ -1,13 +1,14 @@
 """
-GDPR Text Anonymization System - Iteration 2
-Multi-agent anonymization with validation layer.
+GDPR Text Anonymization System - Iteration 3
+Multi-agent anonymization with validation and risk assessment.
 """
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .models import Entity, EntityList, EntityType
 from .simple import AnonymizationResult, anonymize_simple
 from .validation import Issue, ValidationResult, validate_anonymization
+from .risk import RiskAssessment, RiskAssessmentError, assess_risk
 
 __all__ = [
     "anonymize_simple",
@@ -18,4 +19,7 @@ __all__ = [
     "validate_anonymization",
     "ValidationResult",
     "Issue",
+    "assess_risk",
+    "RiskAssessment",
+    "RiskAssessmentError",
 ]
