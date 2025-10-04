@@ -71,14 +71,12 @@ def validate_anonymization(anonymized_text: str) -> ValidationResult:
         >>> len(result.issues)
         1
     """
-    # Input validation
     if anonymized_text is None:
         raise ValueError("anonymized_text cannot be None")
 
     if not isinstance(anonymized_text, str):
         raise ValueError(f"anonymized_text must be a string, got {type(anonymized_text)}")
 
-    # Handle empty input
     if not anonymized_text.strip():
         return ValidationResult(
             passed=True,
@@ -87,13 +85,9 @@ def validate_anonymization(anonymized_text: str) -> ValidationResult:
             confidence=1.0
         )
 
-    # Get LLM client
     llm = LLMClient()
-
-    # Construct validation prompt
     prompt = _create_validation_prompt(anonymized_text)
 
-    # Call LLM with retry logic
     max_attempts = 2
     for attempt in range(1, max_attempts + 1):
         try:
@@ -103,8 +97,10 @@ def validate_anonymization(anonymized_text: str) -> ValidationResult:
         except (ValueError, json.JSONDecodeError) as e:
             if attempt >= max_attempts:
                 raise ValueError(f"Failed to parse LLM response after {max_attempts} attempts: {e}")
-            # Retry on next iteration
             continue
+
+    # This should never be reached due to the raise above, but satisfies type checker
+    raise RuntimeError("Unexpected error: validation loop completed without returning or raising")
 
 
 def _create_validation_prompt(anonymized_text: str) -> str:

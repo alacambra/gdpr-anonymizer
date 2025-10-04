@@ -21,8 +21,18 @@ class LLMClient:
         try:
             import ollama  # type: ignore[import-untyped]
             ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+            ollama_token = os.getenv("OLLAMA_AUTH_TOKEN")
+
+            # Build headers if auth token is provided
+            headers = {}
+            if ollama_token:
+                headers["Authorization"] = f"Bearer {ollama_token}"
+
             self.provider = "ollama"
-            self.client = ollama.Client(host=ollama_host)
+            self.client = ollama.Client(
+                host=ollama_host,
+                headers=headers if headers else None
+            )
             return
         except ImportError:
             pass
