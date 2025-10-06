@@ -4,6 +4,19 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 
+class OllamaConfig(BaseModel):
+    """Ollama-specific configuration."""
+
+    base_url: str = Field(
+        default="http://localhost:11434",
+        description="Ollama server URL"
+    )
+    auth_token: Optional[str] = Field(
+        default=None,
+        description="Optional authentication token for Ollama"
+    )
+
+
 class LLMConfig(BaseModel):
     """LLM provider configuration."""
 
@@ -14,6 +27,10 @@ class LLMConfig(BaseModel):
     api_key_env: Optional[str] = Field(
         default=None,
         description="Environment variable name for API key"
+    )
+    ollama: Optional[OllamaConfig] = Field(
+        default=None,
+        description="Ollama-specific configuration"
     )
 
 

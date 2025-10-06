@@ -42,7 +42,9 @@ class AnonymizeResponse(BaseModel):
             "validation": {...},
             "risk_assessment": {...},
             "iterations": 1,
-            "success": true
+            "success": true,
+            "llm_provider": "claude",
+            "llm_model": "claude-3-5-sonnet-20241022"
         }
     """
 
@@ -56,6 +58,8 @@ class AnonymizeResponse(BaseModel):
     risk_assessment: RiskAssessmentResponse = Field(description="Risk assessment")
     iterations: int = Field(description="Number of iterations required")
     success: bool = Field(description="Whether anonymization succeeded")
+    llm_provider: str = Field(description="LLM provider used (ollama, claude, openai)")
+    llm_model: str = Field(description="Specific LLM model used")
 
 
 class BatchAnonymizeResponse(BaseModel):

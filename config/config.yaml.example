@@ -22,6 +22,16 @@ llm:
   # export ANTHROPIC_API_KEY=your-key-here
   api_key_env: "ANTHROPIC_API_KEY"
 
+  # Ollama-specific configuration (only needed if provider is "ollama")
+  ollama:
+    # Ollama server URL
+    # Can also be set via OLLAMA_HOST environment variable
+    base_url: "http://localhost:11434"
+
+    # Optional authentication token for secured Ollama instances
+    # Can also be set via OLLAMA_AUTH_TOKEN environment variable
+    auth_token: null
+
 agents:
   agent1:
     name: "ANON-EXEC"

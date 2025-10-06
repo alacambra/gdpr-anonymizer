@@ -1,9 +1,12 @@
 llm:
-  provider: "claude"  # or "openai" or "ollama"
-  model: "claude-3-5-sonnet-20241022"
+  provider: "ollama"  # or "openai" or "ollama"
+  model: "gemma-custom"
   temperature: 0.1
   max_tokens: 4096
-  api_key_env: "ANTHROPIC_API_KEY"
+  api_key_env: "sk-ollama-12345-secret"
+  ollama:
+    base_url: "https://ollama.lacambra.tech"
+    auth_token: sk-ollama-12345-secret  # Optional: set if your Ollama instance requires authentication
 
 agents:
   agent1:

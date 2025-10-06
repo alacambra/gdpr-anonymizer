@@ -3,7 +3,7 @@
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
-from ..dependencies import get_orchestrator
+from ..dependencies import get_orchestrator, get_config
 from ..schemas import (
     AnonymizeRequest,
     AnonymizeResponse,
@@ -14,6 +14,7 @@ from ..schemas import (
     RiskAssessmentResponse
 )
 from ....application.orchestrator import AnonymizationOrchestrator
+from ....application.config import AppConfig
 from ....domain.models import Document
 
 router = APIRouter(prefix="/api/v1", tags=["anonymization"])
@@ -22,7 +23,8 @@ router = APIRouter(prefix="/api/v1", tags=["anonymization"])
 @router.post("/anonymize", response_model=AnonymizeResponse)
 async def anonymize_document(
     request: AnonymizeRequest,
-    orchestrator: AnonymizationOrchestrator = Depends(get_orchestrator)
+    orchestrator: AnonymizationOrchestrator = Depends(get_orchestrator),
+    config: AppConfig = Depends(get_config)
 ) -> AnonymizeResponse:
     """Anonymize a single document.
 
@@ -57,7 +59,7 @@ async def anonymize_document(
             for issue in result.validation.issues
         ]
 
-        # Build response
+        # Build response - return even if validation failed
         return AnonymizeResponse(
             document_id=request.document_id,
             anonymized_text=result.anonymization.anonymized_text,
@@ -77,7 +79,9 @@ async def anonymize_document(
                 assessment_date=result.risk_assessment.assessment_date
             ),
             iterations=result.iterations,
-            success=result.success
+            success=result.success,
+            llm_provider=config.llm.provider,
+            llm_model=config.llm.model
         )
 
     except ValueError as e:
@@ -89,7 +93,8 @@ async def anonymize_document(
 @router.post("/anonymize/batch", response_model=BatchAnonymizeResponse)
 async def batch_anonymize(
     request: BatchAnonymizeRequest,
-    orchestrator: AnonymizationOrchestrator = Depends(get_orchestrator)
+    orchestrator: AnonymizationOrchestrator = Depends(get_orchestrator),
+    config: AppConfig = Depends(get_config)
 ) -> BatchAnonymizeResponse:
     """Anonymize multiple documents.
 
@@ -110,7 +115,7 @@ async def batch_anonymize(
     for doc_request in request.documents:
         try:
             # Anonymize each document
-            response = await anonymize_document(doc_request, orchestrator)
+            response = await anonymize_document(doc_request, orchestrator, config)
             results.append(response)
             successful += 1
         except HTTPException as e:
@@ -137,7 +142,9 @@ async def batch_anonymize(
                         assessment_date=None  # type: ignore
                     ),
                     iterations=0,
-                    success=False
+                    success=False,
+                    llm_provider=config.llm.provider,
+                    llm_model=config.llm.model
                 )
             )
 

@@ -26,8 +26,11 @@ def create_llm_provider(provider: str, config: Dict[str, Any]) -> Any:
     provider = provider.lower()
 
     if provider == "ollama":
+        ollama_config = config.get("ollama", {})
         return OllamaAdapter(
-            model=config.get("model", "gemma-custom")
+            model=config.get("model", "gemma-custom"),
+            base_url=ollama_config.get("base_url") if ollama_config else None,
+            auth_token=ollama_config.get("auth_token") if ollama_config else None
         )
     elif provider == "claude":
         return ClaudeAdapter(

@@ -41,13 +41,22 @@ def get_llm_provider() -> Any:
         ValueError: If provider configuration is invalid
     """
     config = get_config()
+    llm_config = {
+        "model": config.llm.model,
+        "temperature": config.llm.temperature,
+        "max_tokens": config.llm.max_tokens
+    }
+
+    # Add ollama-specific configuration if present
+    if config.llm.ollama:
+        llm_config["ollama"] = {
+            "base_url": config.llm.ollama.base_url,
+            "auth_token": config.llm.ollama.auth_token
+        }
+
     return create_llm_provider(
         provider=config.llm.provider,
-        config={
-            "model": config.llm.model,
-            "temperature": config.llm.temperature,
-            "max_tokens": config.llm.max_tokens
-        }
+        config=llm_config
     )
 
 

@@ -100,21 +100,9 @@ class AnonymizationOrchestrator:
             if validation.passed:
                 break
 
-            # If this was the last iteration and we still failed, raise error
-            if iteration >= self.max_iterations:
-                raise RuntimeError(
-                    f"Validation failed after {self.max_iterations} iterations. "
-                    f"Remaining issues: {validation.issue_count()}"
-                )
-
-        # At this point, validation must have passed
+        # At this point, validation must have passed or we exhausted iterations
         if anonymization is None or validation is None:
             raise RuntimeError("Unexpected state: anonymization or validation is None")
-
-        if not validation.passed:
-            raise RuntimeError(
-                "Unexpected state: validation did not pass after retry loop"
-            )
 
         # Agent 3: Risk Assessment
         risk_assessment = await self.agent3.assess_risk(
@@ -128,5 +116,5 @@ class AnonymizationOrchestrator:
             validation=validation,
             risk_assessment=risk_assessment,
             iterations=iteration,
-            success=True
+            success=validation.passed
         )
