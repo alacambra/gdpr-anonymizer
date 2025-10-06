@@ -1,0 +1,26 @@
+llm:
+  provider: "claude"  # or "openai" or "ollama"
+  model: "claude-3-5-sonnet-20241022"
+  temperature: 0.1
+  max_tokens: 4096
+  api_key_env: "ANTHROPIC_API_KEY"
+
+agents:
+  agent1:
+    name: "ANON-EXEC"
+    enabled: true
+    prompt_version: "v1"
+
+  agent2:
+    name: "DIRECT-CHECK"
+    enabled: true
+    prompt_version: "v1"
+
+  agent3:
+    name: "RISK-ASSESS"
+    enabled: true
+    prompt_version: "v1"
+
+orchestration:
+  max_iterations: 3
+  timeout_seconds: 300
