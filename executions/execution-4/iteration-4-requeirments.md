@@ -2,16 +2,32 @@
 
 ## Document Control
 
-**Version**: 1.0  
-**Date**: 2025-10-06  
-**Status**: Ready for Planning  
-**Iteration Goal**: Migrate from POC to production-ready hexagonal architecture with modular monolith structure  
-**Estimated Effort**: 2-3 weeks  
-**Related Documents**: 
+**Version**: 1.1
+**Date**: 2025-10-06
+**Status**: Ready for Planning
+**Iteration Goal**: Migrate from POC to production-ready hexagonal architecture with modular monolith structure (STRUCTURE ONLY - maintain existing functionality)
+**Estimated Effort**: 2-3 weeks
+**Related Documents**:
 - Functional Requirements v2.0
 - Architectural Requirements v2.0
 - Iteration 1 Implementation (Complete)
-- Iteration 2 Requirements (Specified)
+- Iteration 2 Implementation (Complete)
+
+---
+
+## 🔑 KEY PRINCIPLE: STRUCTURE ONLY, NO FUNCTIONALITY CHANGES
+
+**This iteration is EXCLUSIVELY about architectural migration. Zero functional changes to agents.**
+
+| Component | Current (Iteration 2) | Target (Iteration 3) | Changes |
+|-----------|----------------------|---------------------|---------|
+| Agent 1 | `simple.py` - entity identification | `infrastructure/agents/agent1_anon_exec.py` | **Structure only** - same logic |
+| Agent 2 | `validation.py` - validation | `infrastructure/agents/agent2_direct_check.py` | **Structure only** - same logic |
+| Agent 3 | `risk.py` - stub (returns NEGLIGIBLE) | `infrastructure/agents/agent3_risk_assess.py` | **Structure only** - KEEP STUB |
+| LLM | `llm.py` - direct LLM calls | `infrastructure/adapters/llm/*_adapter.py` | **Structure only** - same providers |
+
+**What changes**: Directory structure, layer separation, dependency injection, FastAPI interface
+**What doesn't change**: Agent behavior, prompts, LLM responses, output quality
 
 ---
 
@@ -19,13 +35,19 @@
 
 ### 1.1 Purpose
 
-Transform the Iteration 1 proof-of-concept into a production-ready modular monolith with:
+Transform the Iteration 1-2 implementation into a production-ready modular monolith with:
 - Hexagonal architecture (Domain, Application, Infrastructure, Interface layers)
-- Multi-agent workflow support (Agent 1, Agent 2, Agent 3)
+- **MAINTAIN EXACT CURRENT FUNCTIONALITY** - Agent 1, Agent 2, Agent 3 (stub)
 - FastAPI REST interface
 - Async/await throughout
 - Comprehensive configuration system
 - Production-grade error handling and logging
+
+**CRITICAL**: This is a **STRUCTURE-ONLY migration**. Agent functionality remains unchanged:
+
+- Agent 1: Entity identification and replacement (as-is from simple.py)
+- Agent 2: Validation of anonymization (as-is from validation.py)
+- Agent 3: Risk assessment STUB (as-is from risk.py - returns NEGLIGIBLE)
 
 ### 1.2 Success Criteria
 
@@ -54,7 +76,9 @@ Transform the Iteration 1 proof-of-concept into a production-ready modular monol
 ### 1.3 Explicit Non-Goals
 
 This iteration deliberately EXCLUDES:
-- ❌ AutoGen integration (evaluate in Iteration 4)
+
+- ❌ **ANY new agent functionality** - Agents 1, 2, 3 work exactly as current implementation
+- ❌ Agent 3 real risk assessment (keep stub that returns NEGLIGIBLE)
 - ❌ Advanced chunking strategies
 - ❌ Indirect identifier processing
 - ❌ Web UI (API only)
@@ -73,7 +97,7 @@ This iteration deliberately EXCLUDES:
 
 ---
 
-## 2. Functional Requirements - Iteration 3
+## 2. Functional Requirements - iteration 4
 
 ### 2.1 Multi-Agent Workflow
 
@@ -107,21 +131,23 @@ This iteration deliberately EXCLUDES:
 - >85% precision on test corpus
 - Clear issue reporting with locations
 
-**REQ-I3-F-003**: Implement Agent 3 (RISK-ASSESS)  
-**Source**: REQ-F-017, REQ-F-018, REQ-F-019  
-**Status**: NEW IMPLEMENTATION
+**REQ-I3-F-003**: Migrate Agent 3 (RISK-ASSESS) - STUB ONLY
+**Source**: risk.py (existing stub implementation)
+**Status**: MIGRATION ONLY - NO NEW FUNCTIONALITY
 
 **Requirements:**
-- Evaluate 5 risk dimensions (each 1-5 scale)
-- Calculate overall risk score (1-25)
-- Map to risk levels (NEGLIGIBLE, LOW, MEDIUM, HIGH, CRITICAL)
-- Provide GDPR compliance determination
-- Detailed justification for each dimension
+
+- Migrate existing stub from risk.py to hexagonal architecture
+- Continue returning hardcoded NEGLIGIBLE risk assessment
+- Maintain same RiskAssessment dataclass structure
+- Keep stub reasoning message
+- No LLM calls required (stub implementation)
 
 **Success Criteria:**
-- Dimension scores align with GDPR guidelines
-- Justifications are clear and actionable
-- Risk levels correctly classified
+
+- Agent 3 returns same stub results as current implementation
+- Fits into hexagonal architecture properly
+- Can be enhanced in future iterations without architectural changes
 
 **REQ-I3-F-004**: Orchestration Workflow  
 **Source**: REQ-F-021, REQ-F-024  
@@ -189,7 +215,7 @@ This iteration deliberately EXCLUDES:
 
 ---
 
-## 3. Architectural Requirements - Iteration 3
+## 3. Architectural Requirements - iteration 4
 
 ### 3.1 Domain Layer
 
@@ -293,7 +319,7 @@ application/
 
 **REQ-I3-A-005**: Use Cases  
 **Source**: REQ-A-021, REQ-A-022  
-**Status**: OPTIONAL FOR ITERATION 3
+**Status**: OPTIONAL FOR iteration 4
 
 **Structure:**
 ```
@@ -472,19 +498,21 @@ interfaces/rest/
 
 **Tasks:**
 1. Create infrastructure/agents/ structure
-2. Implement Agent1Implementation (migrate from Iteration 1)
-3. Implement Agent2Implementation (new)
-4. Implement Agent3Implementation (new)
-5. Integrate with domain prompts
+2. **Migrate Agent1Implementation from simple.py** - same entity extraction logic
+3. **Migrate Agent2Implementation from validation.py** - same validation logic
+4. **Migrate Agent3Implementation from risk.py** - KEEP AS STUB (returns NEGLIGIBLE)
+5. Extract prompts to domain/agents/prompts/
 
 **Deliverables:**
-- Three agent implementations
+
+- Three agent implementations with **IDENTICAL behavior** to current code
 - Each agent returning proper domain models
-- Agent 2 verification working
-- Agent 3 risk assessment working
+- Agent 1 and 2 **working exactly as before**
+- Agent 3 stub **still returning NEGLIGIBLE**
 
 **Validation:**
 - Each agent testable independently
+- **Output identical to current implementation**
 - Agents coordinate via orchestrator
 - Retry loop functions correctly
 
@@ -791,7 +819,7 @@ logging:
 
 **REQ-I3-NF-001**: Performance  
 **Source**: REQ-F-045  
-**Status**: TARGETS FOR ITERATION 3
+**Status**: TARGETS FOR iteration 4
 
 **Targets:**
 - Small documents (<100 words): <10 seconds (3 agents sequentially)
@@ -809,7 +837,7 @@ logging:
 **Status**: REQUIRED FOR COMPLETION
 
 **Required Documentation:**
-1. **README.md**: Updated for Iteration 3
+1. **README.md**: Updated for iteration 4
    - Architecture overview
    - Configuration guide
    - API usage examples
@@ -851,7 +879,7 @@ logging:
 
 ### 12.2 Deprecation Process
 
-**Phase 1** (During Iteration 3): Mark POC as deprecated  
+**Phase 1** (During iteration 4): Mark POC as deprecated  
 **Phase 2** (Iteration 4): Remove POC code  
 
 ---
@@ -870,19 +898,22 @@ logging:
 - **Mitigation**: Async/await, profiling, optimization where needed
 - **Contingency**: Accept slightly slower performance for architectural benefits
 
-**Risk 3: Agent 3 Prompt Engineering Difficulty**
-- **Impact**: MEDIUM - Risk scoring is subjective
-- **Mitigation**: Iterate on prompts, use clear rubrics, test with examples
-- **Contingency**: Start with conservative (higher) risk scores
+**Risk 3: Async/Await Migration Complexity**
+
+- **Impact**: MEDIUM - Converting existing sync code to async
+- **Mitigation**: Incremental migration, test thoroughly, use async LLM clients
+- **Contingency**: Start with sync code, migrate to async in future iteration
 
 ### 13.2 Schedule Risks
 
 **Risk 4: Scope Creep**
+
 - **Impact**: HIGH - Could delay completion
-- **Mitigation**: Strict adherence to non-goals, defer features to Iteration 4
-- **Contingency**: Cut Agent 3 if timeline at risk (defer to Iteration 4)
+- **Mitigation**: Strict adherence to non-goals, STRUCTURE-ONLY migration
+- **Contingency**: Defer FastAPI to future iteration, focus on domain/infrastructure first
 
 **Risk 5: Integration Issues**
+
 - **Impact**: MEDIUM - Layers might not integrate smoothly
 - **Mitigation**: Incremental integration, continuous testing
 - **Contingency**: Extra integration phase if needed (Days 22-24)
@@ -952,7 +983,7 @@ logging:
 
 ---
 
-**END OF ITERATION 3 REQUIREMENTS**
+**END OF iteration 4 REQUIREMENTS**
 
 **Status**: READY FOR IMPLEMENTATION  
 **Estimated Effort**: 2-3 weeks  
