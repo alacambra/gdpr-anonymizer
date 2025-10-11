@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gdpr-anonymizer
+spec:
+  replicas: 2
+  template:
+    spec:
+      containers:
+      - name: gdpr-anonymizer
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 750m
+            memory: 1Gi

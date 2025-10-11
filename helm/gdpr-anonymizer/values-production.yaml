@@ -1,0 +1,77 @@
+# Production values for anonymizer.lacambra.tech
+# Override default values for production deployment
+
+replicaCount: 2
+
+image:
+  repository: alacambra/anonymizer
+  pullPolicy: IfNotPresent
+  tag: "2"
+
+# Enable ingress with Let's Encrypt
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: anonymizer.lacambra.tech
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: gdpr-anonymizer-tls
+      hosts:
+        - anonymizer.lacambra.tech
+
+# Production resource limits
+resources:
+  limits:
+    cpu: 500m
+    memory: 256M
+  requests:
+    cpu: 200m
+    memory: 256M
+
+# Enable autoscaling for production
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+
+# Production configuration
+config:
+  llmProvider: "ollama"
+
+  claude:
+    model: "claude-3-5-sonnet-20241022"
+    maxTokens: 4096
+    temperature: 0.0
+
+  openai:
+    model: "gpt-4"
+    maxTokens: 4096
+    temperature: 0.0
+
+  ollama:
+    model: "phi4:latest"
+    baseUrl: "http://xxxx:11434" 
+
+  anonymization:
+    maxIterations: 3
+    validationThreshold: 0.8
+    riskThreshold: 0.7
+
+  logging:
+    level: "INFO"
+    format: "json"
+
+# Secrets - provide via --set flag or external secret management
+# DO NOT commit actual secrets to Git
+# Not needed when using Ollama
+secrets:
+  anthropicApiKey: ""  # Set via: --set secrets.anthropicApiKey="your-key"
+  openaiApiKey: ""     # Set via: --set secrets.openaiApiKey="your-key"

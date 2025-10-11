@@ -1,0 +1,16 @@
+apiVersion: v2
+name: gdpr-anonymizer
+description: A Helm chart for GDPR Anonymizer - LLM-powered text anonymization service
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - gdpr
+  - anonymization
+  - privacy
+  - llm
+maintainers:
+  - name: GDPR Anonymizer Team
+home: https://github.com/yourusername/gdpr-anonymizer
+sources:
+  - https://github.com/yourusername/gdpr-anonymizer

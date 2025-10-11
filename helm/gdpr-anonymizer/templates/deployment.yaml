@@ -1,0 +1,93 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gdpr-anonymizer.fullname" . }}
+  labels:
+    {{- include "gdpr-anonymizer.labels" . | nindent 4 }}
+spec:
+  {{- if not .Values.autoscaling.enabled }}
+  replicas: {{ .Values.replicaCount }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "gdpr-anonymizer.selectorLabels" . | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  template:
+    metadata:
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      labels:
+        {{- include "gdpr-anonymizer.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.serviceAccount.create }}
+      serviceAccountName: {{ include "gdpr-anonymizer.serviceAccountName" . }}
+      {{- end }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: {{ .Chart.Name }}
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 12 }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        ports:
+        - name: {{ .Values.service.name }}
+          containerPort: {{ .Values.service.targetPort }}
+          protocol: {{ .Values.service.protocol }}
+        env:
+        {{- range .Values.env }}
+        - name: {{ .name }}
+          value: {{ .value | quote }}
+        {{- end }}
+        - name: ANTHROPIC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "gdpr-anonymizer.fullname" . }}
+              key: anthropic-api-key
+              optional: true
+        - name: OPENAI_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "gdpr-anonymizer.fullname" . }}
+              key: openai-api-key
+              optional: true
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        livenessProbe:
+          {{- toYaml .Values.livenessProbe | nindent 12 }}
+        readinessProbe:
+          {{- toYaml .Values.readinessProbe | nindent 12 }}
+        lifecycle:
+          preStop:
+            exec:
+              command: ["/bin/sh", "-c", "sleep 5"]
+      volumes:
+      - name: config
+        configMap:
+          name: {{ include "gdpr-anonymizer.fullname" . }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}

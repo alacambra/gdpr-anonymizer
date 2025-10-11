@@ -1,0 +1,81 @@
+# Git
+.git
+.gitignore
+.github
+
+# Python
+**/__pycache__
+**/*.pyc
+**/*.pyo
+**/*.pyd
+.Python
+*.so
+*.egg
+*.egg-info
+dist
+build
+eggs
+.eggs
+parts
+bin
+var
+sdist
+develop-eggs
+.installed.cfg
+lib
+lib64
+**/.pytest_cache
+**/.mypy_cache
+**/.coverage
+htmlcov
+
+# Virtual environments
+venv
+venv_python3
+env
+ENV
+
+# Node
+**/node_modules
+**/.npm
+**/.yarn
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs
+
+# Testing
+.pytest_cache
+.coverage
+htmlcov
+.tox
+
+# Documentation
+docs
+*.md
+!README.md
+
+# Examples
+examples
+executions
+
+# Kubernetes (don't include in image)
+k8s
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.circleci
+
+# Other
+.env
+.env.*
+!.env.example

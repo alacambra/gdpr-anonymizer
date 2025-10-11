@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "gdpr-anonymizer.fullname" . }}
+  labels:
+    {{- include "gdpr-anonymizer.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    # LLM Provider Configuration
+    llm_provider: {{ .Values.config.llmProvider | quote }}
+
+    claude:
+      model: {{ .Values.config.claude.model | quote }}
+      max_tokens: {{ .Values.config.claude.maxTokens }}
+      temperature: {{ .Values.config.claude.temperature }}
+
+    openai:
+      model: {{ .Values.config.openai.model | quote }}
+      max_tokens: {{ .Values.config.openai.maxTokens }}
+      temperature: {{ .Values.config.openai.temperature }}
+
+    ollama:
+      model: {{ .Values.config.ollama.model | quote }}
+      base_url: {{ .Values.config.ollama.baseUrl | quote }}
+
+    # Anonymization Settings
+    anonymization:
+      max_iterations: {{ .Values.config.anonymization.maxIterations }}
+      validation_threshold: {{ .Values.config.anonymization.validationThreshold }}
+      risk_threshold: {{ .Values.config.anonymization.riskThreshold }}
+
+    # Logging
+    logging:
+      level: {{ .Values.config.logging.level | quote }}
+      format: {{ .Values.config.logging.format | quote }}

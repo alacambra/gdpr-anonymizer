@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: gdpr-anonymizer
+
+resources:
+- deployment.yaml
+- service.yaml
+- configmap.yaml
+- secret.yaml
+
+commonLabels:
+  app: gdpr-anonymizer
+  managed-by: kustomize
+
+images:
+- name: gdpr-anonymizer
+  newName: gdpr-anonymizer
+  newTag: latest
