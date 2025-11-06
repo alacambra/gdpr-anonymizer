@@ -85,9 +85,13 @@ async def anonymize_document(
         )
 
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        # Return full error message (not truncated)
+        error_detail = str(e)
+        raise HTTPException(status_code=400, detail=error_detail)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Anonymization failed: {str(e)}")
+        # Return full error message for unexpected errors
+        error_detail = f"Anonymization failed: {str(e)}"
+        raise HTTPException(status_code=500, detail=error_detail)
 
 
 @router.post("/anonymize/batch", response_model=BatchAnonymizeResponse)
