@@ -15,9 +15,9 @@ uvicorn = "^0.27.0"
 pyyaml = "^6.0"
 python-dotenv = "^1.0.0"
 httpx = "^0.27.0"
-ollama = {version = "^0.1.0"}
-anthropic = {version = "^0.18.0"}
-openai = {version = "^1.0.0"}
+ollama =  "^0.1.0"
+anthropic = "^0.18.0"
+openai = "^1.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.2"
