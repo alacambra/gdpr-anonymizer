@@ -36,6 +36,8 @@ COPY server/poetry.lock* ./
 # Configure poetry to not create virtual environment
 RUN poetry config virtualenvs.create false
 
+RUN poetry install --no-interaction --no-ansi --no-root --extras "ollama claude openai"
+
 # Copy server source code (separate layer - changes frequently)
 COPY server/src/ ./src/
 COPY server/config/ ./config/
