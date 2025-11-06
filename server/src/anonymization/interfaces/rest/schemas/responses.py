@@ -61,8 +61,8 @@ class AnonymizeResponse(BaseModel):
     success: bool = Field(description="Whether anonymization succeeded")
     llm_provider: str = Field(description="LLM provider used (ollama, claude, openai)")
     llm_model: str = Field(description="Specific LLM model used")
-    error: Optional[str] = Field(
-        default=None,
+    error: str = Field(
+        default="",
         description="Error message if success=false, shown in UI error box"
     )
 

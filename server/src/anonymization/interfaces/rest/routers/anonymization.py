@@ -1,5 +1,7 @@
 """Anonymization API router."""
 
+from datetime import datetime
+import json
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -13,7 +15,7 @@ from ..schemas import (
     ValidationResponse,
     RiskAssessmentResponse
 )
-from ....application.orchestrator import AnonymizationOrchestrator
+from ....application.orchestrator import AnonymizationOrchestrator, AnonymizationResult
 from ....application.config import AppConfig
 from ....domain.models import Document
 
@@ -45,10 +47,8 @@ async def anonymize_document(
             document_id=request.document_id
         )
 
-        # Execute anonymization workflow
-        result = await orchestrator.anonymize_document(document)
+        result: AnonymizationResult = await orchestrator.anonymize_document(document)
 
-        # Convert validation issues to response format
         validation_issues = [
             ValidationIssueResponse(
                 identifier_type=issue.identifier_type,
@@ -62,8 +62,8 @@ async def anonymize_document(
         # Build response - return even if validation failed
         return AnonymizeResponse(
             document_id=request.document_id,
-            anonymized_text=result.anonymization.anonymized_text,
-            mappings=result.anonymization.mappings,
+            anonymized_text=result.anonymizationMapping.anonymized_text,
+            mappings=result.anonymizationMapping.mappings,
             validation=ValidationResponse(
                 passed=result.validation.passed,
                 issues=validation_issues,
@@ -82,7 +82,7 @@ async def anonymize_document(
             success=result.success,
             llm_provider=config.llm.provider,
             llm_model=config.llm.model,
-            error=None  # No error on success
+            error=json.dumps(result.anonymizationMapping.skippedEntites)  # No error on success
         )
 
     except ValueError as e:
@@ -106,13 +106,13 @@ async def anonymize_document(
                 gdpr_compliant=False,
                 confidence=0.0,
                 reasoning=f"Cannot assess risk due to parsing failure",
-                assessment_date=None  # type: ignore
+                assessment_date=datetime.now()
             ),
             iterations=0,
             success=False,
             llm_provider=config.llm.provider,
             llm_model=config.llm.model,
-            error=error_detail  # Full error message for UI error box
+            # error=error_detail  # Full error message for UI error box
         )
 
     except Exception as e:

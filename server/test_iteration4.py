@@ -105,11 +105,11 @@ async def test_basic_anonymization():
     print()
 
     print(f"Anonymized Text:")
-    print(f"  {result.anonymization.anonymized_text}")
+    print(f"  {result.anonymizationMapping.anonymized_text}")
     print()
 
-    print(f"Mappings ({len(result.anonymization.mappings)} total):")
-    for original, placeholder in result.anonymization.mappings.items():
+    print(f"Mappings ({len(result.anonymizationMapping.mappings)} total):")
+    for original, placeholder in result.anonymizationMapping.mappings.items():
         print(f"  {original:30s} → {placeholder}")
     print()
 

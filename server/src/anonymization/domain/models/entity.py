@@ -11,7 +11,7 @@ class EntityType(str, Enum):
     EMAIL = "EMAIL"
     PHONE = "PHONE"
     ADDRESS = "ADDRESS"
-    OTHER = "OTHER"
+    ID = "ID"
 
 
 class Entity(BaseModel):

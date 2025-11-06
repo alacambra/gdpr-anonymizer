@@ -130,7 +130,7 @@ class TestErrorResponseSchema:
                 "passed": True,
                 "issues": [],
                 "reasoning": "All good",
-                "confidence": 1.0
+                "confidence": 1.0,
             },
             risk_assessment={
                 "overall_score": 95,

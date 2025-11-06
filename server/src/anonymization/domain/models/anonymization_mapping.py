@@ -36,6 +36,10 @@ class AnonymizationMapping(BaseModel):
         default_factory=list,
         description="List of detected entities"
     )
+    skippedEntites: List[Entity] = Field(
+        default_factory=list,
+        description="List of skipped entites "
+    )
 
     def entity_count(self) -> int:
         """Get total number of entities detected."""

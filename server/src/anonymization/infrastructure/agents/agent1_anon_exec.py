@@ -13,10 +13,8 @@ from ...domain.models import Entity, EntityType, AnonymizationMapping
 from ...domain.ports import ILLMProvider
 from ...domain.agents.prompts import AGENT1_ENTITY_IDENTIFICATION_PROMPT
 
-logger = logging.getLogger(__name__)
-
-
 class LLMEntityResponse(BaseModel):
+
     """Pydantic model for validating LLM entity response structure."""
     type: str
     value: str
@@ -25,9 +23,11 @@ class LLMEntityResponse(BaseModel):
     @classmethod
     def validate_type(cls, v: str) -> str:
         """Validate that type is one of the allowed EntityType values."""
-        valid_types = {"NAME", "EMAIL", "PHONE", "ADDRESS", "DATE", "AGE", "ID", "LOCATION", "ORGANIZATION", "MEDICATION", "CONDITION", "OTHER"}
+        valid_types = {"NAME", "EMAIL", "PHONE", "ADDRESS", "DATE", "AGE",
+                       "ID", "LOCATION", "ORGANIZATION", "MEDICATION", "CONDITION", "OTHER"}
         if v.upper() not in valid_types:
-            raise ValueError(f"Invalid entity type: {v}. Must be one of {valid_types}")
+            raise ValueError(
+                f"Invalid entity type: {v}. Must be one of {valid_types}")
         return v.upper()
 
 
@@ -37,7 +37,9 @@ class LLMEntitiesListResponse(BaseModel):
 
 
 class Agent1Implementation:
+    logger = logging.getLogger(__name__)
     """Agent 1: Entity identification and anonymization execution.
+
 
     Migrated from simple.py with identical behavior.
     """
@@ -75,7 +77,7 @@ class Agent1Implementation:
 
         # Handle case where opening bracket exists but no closing bracket (truncation)
         if start != -1 and end <= start:
-            logger.warning("JSON appears truncated (no closing bracket found)")
+            self.logger.warning("JSON appears truncated (no closing bracket found)")
             json_str = response[start:]
         elif start == -1:
             return None
@@ -90,7 +92,8 @@ class Agent1Implementation:
         except json.JSONDecodeError as e:
             # Attempt 2: Check if it's truncated (missing closing bracket)
             if not json_str.rstrip().endswith(']'):
-                logger.warning(f"JSON appears truncated, attempting to fix: {e}")
+                self.logger.warning(
+                    f"JSON appears truncated, attempting to fix: {e}")
                 # Try to close the last object and array
                 fixed = json_str.rstrip()
                 # Remove any incomplete object at the end
@@ -99,7 +102,7 @@ class Agent1Implementation:
                     fixed = fixed[:last_complete + 1] + ']'
                     try:
                         json.loads(fixed)
-                        logger.info("Successfully fixed truncated JSON")
+                        self.logger.info("Successfully fixed truncated JSON")
                         return fixed
                     except json.JSONDecodeError:
                         pass
@@ -110,11 +113,12 @@ class Agent1Implementation:
                 # Find all string values and escape internal quotes
                 fixed = re.sub(
                     r'("value"\s*:\s*")(.*?)("(?:\s*[,}]))',
-                    lambda m: m.group(1) + m.group(2).replace('"', '\\"') + m.group(3),
+                    lambda m: m.group(
+                        1) + m.group(2).replace('"', '\\"') + m.group(3),
                     json_str
                 )
                 json.loads(fixed)
-                logger.info("Successfully fixed unescaped quotes in JSON")
+                self.logger.info("Successfully fixed unescaped quotes in JSON")
                 return fixed
             except (json.JSONDecodeError, re.error):
                 pass
@@ -150,12 +154,20 @@ class Agent1Implementation:
             try:
                 # Generate prompt and call LLM
                 prompt = AGENT1_ENTITY_IDENTIFICATION_PROMPT(text)
+
+                self.logger.warning("sending AGENT1_ENTITY_IDENTIFICATION_PROMPT")
+                self.logger.info(prompt)
+
                 response = await self.llm.generate(prompt)
 
-                # Parse entities from response (with automatic cleaning/fixing)
-                entities = self._parse_entities(response, attempt)
+                self.logger.info("response received")
 
-                # Build mappings from entities
+                # Parse entities from response (with automatic cleaning/fixing)
+                result: tuple[list[Entity], list[Entity]] = self._parse_entities(
+                    response, attempt)
+
+                skippedEntites = result[1]
+                entities = result[0]
                 mappings = self._build_mappings(entities)
 
                 # Apply replacements to text
@@ -165,7 +177,8 @@ class Agent1Implementation:
                     original_text=text,
                     anonymized_text=anonymized_text,
                     mappings=mappings,
-                    entities=entities
+                    entities=entities,
+                    skippedEntites=skippedEntites
                 )
 
             except (ValueError, json.JSONDecodeError) as e:
@@ -176,13 +189,14 @@ class Agent1Implementation:
                         f"Failed to parse LLM response after {max_attempts} attempts. "
                         f"Last error: {str(e)}"
                     )
-                logger.warning(f"Attempt {attempt}/{max_attempts} failed, retrying: {e}")
+                self.logger.warning(
+                    f"Attempt {attempt}/{max_attempts} failed, retrying: {e}")
                 continue
 
         # Should never reach here, but satisfy type checker
         raise ValueError(f"Unexpected error in anonymization: {last_error}")
 
-    def _parse_entities(self, response: str, attempt: int = 1) -> List[Entity]:
+    def _parse_entities(self, response: str, attempt: int = 1) -> tuple[list[Entity], list[Entity]]:
         """Parse entity list from LLM JSON response with Pydantic validation.
 
         Args:
@@ -203,8 +217,9 @@ class Agent1Implementation:
             json_str = self._clean_json_response(response)
 
             if json_str is None:
-                logger.error(f"No JSON array found in LLM response (attempt {attempt})")
-                logger.debug(f"Full response: {response}")
+                self.logger.error(
+                    f"No JSON array found in LLM response (attempt {attempt})")
+                self.logger.debug(f"Full response: {response}")
                 raise ValueError("No JSON array found in LLM response")
 
             # Parse JSON
@@ -212,15 +227,18 @@ class Agent1Implementation:
 
             # Validate it's a list
             if not isinstance(data, list):
-                logger.error(f"Expected JSON array, got {type(data).__name__}")
-                raise ValueError(f"Expected JSON array, got {type(data).__name__}")
+                self.logger.error(f"Expected JSON array, got {type(data).__name__}")
+                raise ValueError(
+                    f"Expected JSON array, got {type(data).__name__}")
 
             # Pydantic validation: validate entire structure first
             try:
                 validated_response = LLMEntitiesListResponse(entities=data)
-                logger.info(f"LLM response structure validated successfully with {len(validated_response.entities)} entities")
+                self.logger.info(
+                    f"LLM response structure validated successfully with {len(validated_response.entities)} entities")
             except ValidationError as ve:
-                logger.warning(f"Pydantic validation failed, falling back to per-entity validation: {ve}")
+                self.logger.warning(
+                    f"Pydantic validation failed, falling back to per-entity validation: {ve}")
                 # Fall through to per-entity validation below
 
             # Convert to Entity objects (with per-entity error handling)
@@ -239,8 +257,9 @@ class Agent1Implementation:
 
                 except (KeyError, ValueError, ValidationError) as e:
                     error_msg = f"Invalid entity at index {idx}: {item}. Error: {e}"
-                    logger.warning(f"Skipping {error_msg}")
-                    skipped_entities.append({"index": idx, "item": item, "error": str(e)})
+                    self.logger.warning(f"Skipping {error_msg}")
+                    skipped_entities.append(
+                        {"index": idx, "item": item, "error": str(e)})
                     continue
 
             # Log statistics
@@ -248,32 +267,20 @@ class Agent1Implementation:
             valid_entities = len(entities)
             invalid_entities = len(skipped_entities)
 
-            logger.info(
+            self.logger.info(
                 f"Entity parsing complete (attempt {attempt}): "
                 f"{valid_entities}/{total_entities} valid, {invalid_entities} skipped"
             )
 
-            # If no valid entities found, raise an error with details
-            if len(entities) == 0:
-                error_detail = (
-                    f"No valid entities found in LLM response. "
-                    f"Total items in response: {total_entities}. "
-                    f"All entities skipped due to validation errors."
-                )
-                if skipped_entities:
-                    error_detail += f"\n\nSkipped entities:\n"
-                    for skip in skipped_entities[:5]:  # Show first 5
-                        error_detail += f"  - Index {skip['index']}: {skip['error']}\n"
+            all: tuple[list[Entity], list[Entity]] = entities, skipped_entities
 
-                logger.error(error_detail)
-                raise ValueError(error_detail)
-
-            return entities
+            return all
 
         except (ValueError, ValidationError, KeyError, json.JSONDecodeError) as e:
             # Log full response for debugging
-            logger.error(f"Failed to parse LLM response (attempt {attempt}): {e}")
-            logger.debug(f"Full LLM response:\n{response}")
+            self.logger.error(
+                f"Failed to parse LLM response (attempt {attempt}): {e}")
+            self.logger.debug(f"Full LLM response:\n{response}")
 
             # Raise with detailed error but don't truncate
             error_msg = (
@@ -298,7 +305,8 @@ class Agent1Implementation:
             Dictionary mapping original values to placeholders
         """
         mappings = {}
-        counters = {"NAME": 0, "EMAIL": 0, "PHONE": 0, "ADDRESS": 0, "OTHER": 0}
+        counters = {"NAME": 0, "EMAIL": 0,
+                    "PHONE": 0, "ADDRESS": 0, "OTHER": 0}
 
         for entity in entities:
             entity_type = entity.type.value
