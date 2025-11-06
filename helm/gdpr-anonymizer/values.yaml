@@ -5,8 +5,8 @@
 replicaCount: 2
 
 image:
-  repository: gdpr-anonymizer
-  pullPolicy: IfNotPresent
+  repository: alacambra/anonymizer
+  pullPolicy: Always
   tag: "latest"
 
 imagePullSecrets: []
