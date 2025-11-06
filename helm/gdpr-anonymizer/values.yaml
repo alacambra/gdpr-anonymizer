@@ -7,7 +7,7 @@ replicaCount: 1
 image:
   repository: alacambra/anonymizer
   pullPolicy: Always
-  tag: "v4"
+  tag: "v5"
 
 imagePullSecrets: []
 nameOverride: ""
