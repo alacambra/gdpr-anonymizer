@@ -7,13 +7,33 @@ import json
 import logging
 import re
 from typing import Dict, List, Optional
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError, field_validator
 
 from ...domain.models import Entity, EntityType, AnonymizationMapping
 from ...domain.ports import ILLMProvider
 from ...domain.agents.prompts import AGENT1_ENTITY_IDENTIFICATION_PROMPT
 
 logger = logging.getLogger(__name__)
+
+
+class LLMEntityResponse(BaseModel):
+    """Pydantic model for validating LLM entity response structure."""
+    type: str
+    value: str
+
+    @field_validator('type')
+    @classmethod
+    def validate_type(cls, v: str) -> str:
+        """Validate that type is one of the allowed EntityType values."""
+        valid_types = {"NAME", "EMAIL", "PHONE", "ADDRESS", "DATE", "AGE", "ID", "LOCATION", "ORGANIZATION", "MEDICATION", "CONDITION", "OTHER"}
+        if v.upper() not in valid_types:
+            raise ValueError(f"Invalid entity type: {v}. Must be one of {valid_types}")
+        return v.upper()
+
+
+class LLMEntitiesListResponse(BaseModel):
+    """Pydantic model for validating the complete LLM response (array of entities)."""
+    entities: List[LLMEntityResponse]
 
 
 class Agent1Implementation:
@@ -163,7 +183,7 @@ class Agent1Implementation:
         raise ValueError(f"Unexpected error in anonymization: {last_error}")
 
     def _parse_entities(self, response: str, attempt: int = 1) -> List[Entity]:
-        """Parse entity list from LLM JSON response.
+        """Parse entity list from LLM JSON response with Pydantic validation.
 
         Args:
             response: LLM response containing JSON array
@@ -173,9 +193,11 @@ class Agent1Implementation:
             List of Entity objects
 
         Raises:
-            ValueError: If response cannot be parsed
+            ValueError: If response cannot be parsed or has no valid entities
             json.JSONDecodeError: If JSON is malformed
         """
+        skipped_entities = []
+
         try:
             # Clean and extract JSON from response
             json_str = self._clean_json_response(response)
@@ -193,18 +215,58 @@ class Agent1Implementation:
                 logger.error(f"Expected JSON array, got {type(data).__name__}")
                 raise ValueError(f"Expected JSON array, got {type(data).__name__}")
 
-            # Convert to Entity objects
+            # Pydantic validation: validate entire structure first
+            try:
+                validated_response = LLMEntitiesListResponse(entities=data)
+                logger.info(f"LLM response structure validated successfully with {len(validated_response.entities)} entities")
+            except ValidationError as ve:
+                logger.warning(f"Pydantic validation failed, falling back to per-entity validation: {ve}")
+                # Fall through to per-entity validation below
+
+            # Convert to Entity objects (with per-entity error handling)
             entities = []
             for idx, item in enumerate(data):
                 try:
+                    # Validate individual entity with Pydantic
+                    validated_entity = LLMEntityResponse(**item)
+
+                    # Create domain Entity object
                     entity = Entity(
-                        type=EntityType(item["type"]),
-                        value=item["value"]
+                        type=EntityType(validated_entity.type),
+                        value=validated_entity.value
                     )
                     entities.append(entity)
-                except (KeyError, ValueError) as e:
-                    logger.warning(f"Skipping invalid entity at index {idx}: {item}. Error: {e}")
+
+                except (KeyError, ValueError, ValidationError) as e:
+                    error_msg = f"Invalid entity at index {idx}: {item}. Error: {e}"
+                    logger.warning(f"Skipping {error_msg}")
+                    skipped_entities.append({"index": idx, "item": item, "error": str(e)})
                     continue
+
+            # Log statistics
+            total_entities = len(data)
+            valid_entities = len(entities)
+            invalid_entities = len(skipped_entities)
+
+            logger.info(
+                f"Entity parsing complete (attempt {attempt}): "
+                f"{valid_entities}/{total_entities} valid, {invalid_entities} skipped"
+            )
+
+            # If no valid entities found, raise an error with details
+            if len(entities) == 0:
+                error_detail = (
+                    f"No valid entities found in LLM response. "
+                    f"Total items in response: {total_entities}. "
+                    f"All entities skipped due to validation errors."
+                )
+                if skipped_entities:
+                    error_detail += f"\n\nSkipped entities:\n"
+                    for skip in skipped_entities[:5]:  # Show first 5
+                        error_detail += f"  - Index {skip['index']}: {skip['error']}\n"
+
+                logger.error(error_detail)
+                raise ValueError(error_detail)
 
             return entities
 
@@ -214,12 +276,17 @@ class Agent1Implementation:
             logger.debug(f"Full LLM response:\n{response}")
 
             # Raise with detailed error but don't truncate
-            raise ValueError(
+            error_msg = (
                 f"Failed to parse LLM response as valid entities. "
                 f"Error: {str(e)}. "
                 f"Response length: {len(response)} chars. "
                 f"Response preview: {response[:500]}..."
-            ) from e
+            )
+
+            if skipped_entities:
+                error_msg += f"\n\nSkipped {len(skipped_entities)} invalid entities"
+
+            raise ValueError(error_msg) from e
 
     def _build_mappings(self, entities: List[Entity]) -> Dict[str, str]:
         """Build mappings from original values to placeholders.

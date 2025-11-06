@@ -81,15 +81,42 @@ async def anonymize_document(
             iterations=result.iterations,
             success=result.success,
             llm_provider=config.llm.provider,
-            llm_model=config.llm.model
+            llm_model=config.llm.model,
+            error=None  # No error on success
         )
 
     except ValueError as e:
-        # Return full error message (not truncated)
+        # Parsing/validation error - return 200 OK with success=false and error field
+        # UI will show this in an error box
         error_detail = str(e)
-        raise HTTPException(status_code=400, detail=error_detail)
+
+        return AnonymizeResponse(
+            document_id=request.document_id,
+            anonymized_text="",  # Empty when no valid entities found
+            mappings={},
+            validation=ValidationResponse(
+                passed=False,
+                issues=[],
+                reasoning=f"Parsing error: {error_detail}",
+                confidence=0.0
+            ),
+            risk_assessment=RiskAssessmentResponse(
+                overall_score=25,
+                risk_level="CRITICAL",
+                gdpr_compliant=False,
+                confidence=0.0,
+                reasoning=f"Cannot assess risk due to parsing failure",
+                assessment_date=None  # type: ignore
+            ),
+            iterations=0,
+            success=False,
+            llm_provider=config.llm.provider,
+            llm_model=config.llm.model,
+            error=error_detail  # Full error message for UI error box
+        )
+
     except Exception as e:
-        # Return full error message for unexpected errors
+        # Unexpected errors - return as 500
         error_detail = f"Anonymization failed: {str(e)}"
         raise HTTPException(status_code=500, detail=error_detail)
 

@@ -4,6 +4,8 @@
 import asyncio
 from pathlib import Path
 
+import pytest
+
 from anonymization.application.config import AppConfig, LLMConfig, AgentConfig, OrchestrationConfig
 from anonymization.application.orchestrator import AnonymizationOrchestrator
 from anonymization.domain.models import Document
@@ -15,6 +17,9 @@ from anonymization.infrastructure.agents import (
 )
 
 
+
+@pytest.mark.skip(reason="Integration test - requires running Ollama instance")
+@pytest.mark.asyncio
 async def test_basic_anonymization():
     """Test basic anonymization workflow."""
     print("=" * 80)
@@ -25,8 +30,8 @@ async def test_basic_anonymization():
     # Create simple config
     config = AppConfig(
         llm=LLMConfig(
-            provider="claude",
-            model="claude-3-5-sonnet-20241022",
+            provider="ollama",
+            model="ollama-3-5-sonnet-20241022",
             temperature=0.1,
             max_tokens=4096
         ),

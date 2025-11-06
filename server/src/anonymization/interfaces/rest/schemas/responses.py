@@ -44,7 +44,8 @@ class AnonymizeResponse(BaseModel):
             "iterations": 1,
             "success": true,
             "llm_provider": "claude",
-            "llm_model": "claude-3-5-sonnet-20241022"
+            "llm_model": "claude-3-5-sonnet-20241022",
+            "error": null
         }
     """
 
@@ -52,7 +53,7 @@ class AnonymizeResponse(BaseModel):
         default=None,
         description="Document identifier if provided"
     )
-    anonymized_text: str = Field(description="Anonymized text")
+    anonymized_text: str = Field(description="Anonymized text (empty if no entities found)")
     mappings: Dict[str, str] = Field(description="Mapping of original to placeholder")
     validation: ValidationResponse = Field(description="Validation result")
     risk_assessment: RiskAssessmentResponse = Field(description="Risk assessment")
@@ -60,6 +61,10 @@ class AnonymizeResponse(BaseModel):
     success: bool = Field(description="Whether anonymization succeeded")
     llm_provider: str = Field(description="LLM provider used (ollama, claude, openai)")
     llm_model: str = Field(description="Specific LLM model used")
+    error: Optional[str] = Field(
+        default=None,
+        description="Error message if success=false, shown in UI error box"
+    )
 
 
 class BatchAnonymizeResponse(BaseModel):
