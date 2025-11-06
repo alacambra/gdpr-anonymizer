@@ -3,8 +3,6 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from anonymization.domain.models import anonymization_mapping
-
 from ..domain.models import (
     Document,
     AnonymizationMapping,
