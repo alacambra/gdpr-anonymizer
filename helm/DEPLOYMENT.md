@@ -100,7 +100,7 @@ ingress:
   enabled: true
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: letsencrypt-dev
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
     - host: anonymizer.lacambra.tech

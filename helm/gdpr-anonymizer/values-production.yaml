@@ -4,16 +4,16 @@
 replicaCount: 2
 
 image:
-  repository: alacambra/anonymizer
+  repository: ghcr.io/alacambra/gdpr-anonymizer
   pullPolicy: IfNotPresent
-  tag: "2"
+  tag: "latest"
 
 # Enable ingress with Let's Encrypt
 ingress:
   enabled: true
   className: "nginx"
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
+    cert-manager.io/cluster-issuer: letsencrypt-dev
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   hosts:
@@ -34,6 +34,25 @@ resources:
   requests:
     cpu: 200m
     memory: 256M
+
+# Health probes - critical for avoiding 503 errors
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
 
 # Enable autoscaling for production
 autoscaling:
@@ -57,8 +76,9 @@ config:
     temperature: 0.0
 
   ollama:
-    model: "phi4:latest"
-    baseUrl: "http://xxxx:11434" 
+    model: "phi4:14b"
+    baseUrl: "http://10.60.60.100:11434" 
+    authToken: "your-secret-token-here" 
 
   anonymization:
     maxIterations: 3

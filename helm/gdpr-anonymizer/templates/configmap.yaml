@@ -7,29 +7,45 @@ metadata:
 data:
   config.yaml: |
     # LLM Provider Configuration
-    llm_provider: {{ .Values.config.llmProvider | quote }}
-
-    claude:
+    llm:
+      provider: {{ .Values.config.llmProvider | quote }}
+{{- if eq .Values.config.llmProvider "claude" }}
       model: {{ .Values.config.claude.model | quote }}
       max_tokens: {{ .Values.config.claude.maxTokens }}
       temperature: {{ .Values.config.claude.temperature }}
-
-    openai:
+      api_key_env: "ANTHROPIC_API_KEY"
+{{- else if eq .Values.config.llmProvider "openai" }}
       model: {{ .Values.config.openai.model | quote }}
       max_tokens: {{ .Values.config.openai.maxTokens }}
       temperature: {{ .Values.config.openai.temperature }}
-
-    ollama:
+      api_key_env: "OPENAI_API_KEY"
+{{- else if eq .Values.config.llmProvider "ollama" }}
       model: {{ .Values.config.ollama.model | quote }}
-      base_url: {{ .Values.config.ollama.baseUrl | quote }}
+      max_tokens: 4096
+      temperature: 0.1
+      ollama:
+        base_url: {{ .Values.config.ollama.baseUrl | quote }}
+{{- if .Values.config.ollama.authToken }}
+        auth_token: {{ .Values.config.ollama.authToken | quote }}
+{{- end }}
+{{- end }}
 
-    # Anonymization Settings
-    anonymization:
+    # Agent Configuration
+    agents:
+      agent1:
+        name: "ANON-EXEC"
+        enabled: true
+        prompt_version: "v1"
+      agent2:
+        name: "DIRECT-CHECK"
+        enabled: true
+        prompt_version: "v1"
+      agent3:
+        name: "RISK-ASSESS"
+        enabled: true
+        prompt_version: "v1"
+
+    # Orchestration Settings
+    orchestration:
       max_iterations: {{ .Values.config.anonymization.maxIterations }}
-      validation_threshold: {{ .Values.config.anonymization.validationThreshold }}
-      risk_threshold: {{ .Values.config.anonymization.riskThreshold }}
-
-    # Logging
-    logging:
-      level: {{ .Values.config.logging.level | quote }}
-      format: {{ .Values.config.logging.format | quote }}
+      timeout_seconds: 300

@@ -7,6 +7,7 @@
 All code MUST be free of Pylance errors before considering implementation complete.
 
 **Requirements:**
+
 1. **No Pylance errors** - Red squiggly lines must be resolved
 2. **Minimal Pylance warnings** - Yellow warnings should be addressed where reasonable
 3. **Type hints required** - All public functions must have complete type hints
@@ -15,6 +16,7 @@ All code MUST be free of Pylance errors before considering implementation comple
 ### Common Pylance Issues to Fix
 
 #### 1. Missing Type Stubs
+
 ```python
 # ❌ BAD - Will cause "reportMissingTypeStubs" error
 import ollama  # If ollama doesn't have type stubs
@@ -24,6 +26,7 @@ import ollama  # type: ignore[import-untyped]
 ```
 
 #### 2. Missing Imports
+
 ```python
 # ❌ BAD - Using Optional without importing
 def foo(x: Optional[str]) -> str:
@@ -37,6 +40,7 @@ def foo(x: Optional[str]) -> str:
 ```
 
 #### 3. Incomplete Type Hints
+
 ```python
 # ❌ BAD - Missing return type
 def process_data(text):
@@ -48,6 +52,7 @@ def process_data(text: str) -> str:
 ```
 
 #### 4. Incorrect Type Annotations
+
 ```python
 # ❌ BAD - Wrong type
 def get_config() -> str:
@@ -76,11 +81,13 @@ Before considering any code complete:
 When you MUST use `# type: ignore`:
 
 1. **Always specify the error code**:
+
    ```python
    import ollama  # type: ignore[import-untyped]
    ```
 
 2. **Add explanation for why it's needed**:
+
    ```python
    # Ollama library doesn't provide type stubs
    import ollama  # type: ignore[import-untyped]
@@ -94,11 +101,13 @@ When you MUST use `# type: ignore`:
 ### Iteration-Specific Rules
 
 #### Iteration 1
+
 - Basic type hints required
 - Third-party library type issues can be suppressed with `type: ignore`
 - Focus on zero Pylance errors
 
 #### Iteration 2+
+
 - Strict type checking with mypy
 - Minimize `type: ignore` usage
 - Add type stubs for third-party libraries if possible
@@ -107,6 +116,7 @@ When you MUST use `# type: ignore`:
 ### Tools
 
 **Recommended VS Code Settings:**
+
 ```json
 {
   "python.analysis.typeCheckingMode": "basic",
@@ -116,6 +126,7 @@ When you MUST use `# type: ignore`:
 ```
 
 **Future: mypy configuration** (Iteration 2+):
+
 ```ini
 [mypy]
 python_version = 3.10
@@ -127,6 +138,7 @@ disallow_untyped_defs = True
 ## General Code Quality Standards
 
 ### 1. Imports Organization
+
 ```python
 # Standard library first
 import os
@@ -141,7 +153,9 @@ from .models import AnonymizationResult
 ```
 
 ### 2. Docstrings
+
 All public functions MUST have docstrings:
+
 ```python
 def anonymize_simple(text: str) -> AnonymizationResult:
     """
@@ -156,7 +170,9 @@ def anonymize_simple(text: str) -> AnonymizationResult:
 ```
 
 ### 3. Error Messages
+
 Provide clear, actionable error messages:
+
 ```python
 # ❌ BAD
 raise ValueError("Error")
@@ -171,6 +187,7 @@ raise ValueError(
 ```
 
 ### 4. Comments and Self-Documenting Code
+
 Avoid inline comments. Use self-defining functions instead. If several lines require a comment, extract them into a self-defining function.
 
 ```python
@@ -212,6 +229,7 @@ def format_phone_to_international(phone: str) -> str:
 ## Summary
 
 **Before marking any task complete:**
+
 1. ✅ Zero Pylance errors in VS Code
 2. ✅ All type hints in place
 3. ✅ All imports resolve correctly

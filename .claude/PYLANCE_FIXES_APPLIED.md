@@ -12,12 +12,14 @@ All Pylance errors have been fixed in the Iteration 1 codebase. The code now pas
 ### 1. src/anonymization/llm.py
 
 **Issues Fixed:**
+
 - ✅ Missing return type hints on `__init__` and `_detect_provider`
 - ✅ Missing type annotations for instance variables
 - ✅ Import statements for third-party libraries without type stubs
 - ✅ Potential None return from OpenAI content
 
 **Changes:**
+
 ```python
 # Added proper type hints
 def __init__(self) -> None:
@@ -40,11 +42,13 @@ return str(content) if content else ""
 ### 2. src/anonymization/simple.py
 
 **Issues Fixed:**
+
 - ✅ Import order (PEP 8 compliance)
 - ✅ Type safety in JSON parsing
 - ✅ Proper typing for Dict values from JSON
 
 **Changes:**
+
 ```python
 # Fixed import order (stdlib, then local)
 import json
@@ -69,6 +73,7 @@ for entity in entities:
 All `# type: ignore` comments are properly justified:
 
 1. **Third-party library imports** - Libraries (ollama, anthropic, openai) don't provide type stubs
+
    - `import ollama  # type: ignore[import-untyped]`
    - `from anthropic import Anthropic  # type: ignore[import-untyped]`
    - `from openai import OpenAI  # type: ignore[import-untyped]`
@@ -81,6 +86,7 @@ All `# type: ignore` comments are properly justified:
 ## Verification
 
 All files pass import checks:
+
 ```bash
 ✅ python3 -c "from anonymization import anonymize_simple, AnonymizationResult"
 ✅ python3 -c "from anonymization.llm import LLMClient"
@@ -98,6 +104,7 @@ All files pass import checks:
 ## Pylance Configuration
 
 The code passes Pylance type checking with these settings:
+
 ```json
 {
   "python.analysis.typeCheckingMode": "basic"
@@ -105,6 +112,7 @@ The code passes Pylance type checking with these settings:
 ```
 
 For stricter checking in Iteration 2, we can enable:
+
 ```json
 {
   "python.analysis.typeCheckingMode": "strict"

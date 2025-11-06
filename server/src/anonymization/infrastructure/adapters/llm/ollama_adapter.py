@@ -49,14 +49,13 @@ class OllamaAdapter(BaseLLMAdapter):
         ollama_host = self.base_url or os.getenv("OLLAMA_HOST", "http://localhost:11434")
         ollama_token = self.auth_token or os.getenv("OLLAMA_AUTH_TOKEN")
 
-        headers = {}
+        # Build client kwargs - only pass headers if auth token is provided
+        # Note: ollama.Client doesn't handle None for headers parameter correctly
+        client_kwargs = {"host": ollama_host}
         if ollama_token:
-            headers["Authorization"] = f"Bearer {ollama_token}"
+            client_kwargs["headers"] = {"Authorization": f"Bearer {ollama_token}"}
 
-        self.client = ollama.Client(
-            host=ollama_host,
-            headers=headers if headers else None
-        )
+        self.client = ollama.Client(**client_kwargs)
 
     async def generate(self, prompt: str) -> str:
         """Generate response using Ollama.
