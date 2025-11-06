@@ -10,7 +10,7 @@ handlers:
     formatter: standard
     stream: ext://sys.stdout
 loggers:
-  src:
+  anonymization:
     level: DEBUG
     handlers:
       - console
@@ -26,6 +26,6 @@ loggers:
       - console
     propagate: false
 root:
-  level: DEBUG
+  level: WARNING
   handlers:
     - console

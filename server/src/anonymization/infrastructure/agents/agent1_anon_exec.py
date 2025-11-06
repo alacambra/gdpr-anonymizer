@@ -156,11 +156,12 @@ class Agent1Implementation:
                 prompt = AGENT1_ENTITY_IDENTIFICATION_PROMPT(text)
 
                 self.logger.warning("sending AGENT1_ENTITY_IDENTIFICATION_PROMPT")
-                self.logger.info(prompt)
+                self.logger.debug(prompt)
 
                 response = await self.llm.generate(prompt)
 
                 self.logger.info("response received")
+                self.logger.info(response)
 
                 # Parse entities from response (with automatic cleaning/fixing)
                 result: tuple[list[Entity], list[Entity]] = self._parse_entities(
